@@ -41,6 +41,7 @@ const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRec
 let recognition = null;
 let recognizing = false;
 let micBaseText = "";
+let micQuestionIndex = -1;
 
 function begin() {
   document.getElementById("screen-intro").style.display = "none";
@@ -80,7 +81,7 @@ function saveCurrent() {
 }
 
 function goNext() {
-  stopRecognition();
+  abortRecognition();
   saveCurrent();
   if (current < items.length - 1) {
     current++;
@@ -91,7 +92,7 @@ function goNext() {
 }
 
 function goBack() {
-  stopRecognition();
+  abortRecognition();
   saveCurrent();
   if (current > 0) {
     current--;
@@ -117,6 +118,16 @@ function stopRecognition() {
   }
 }
 
+// Used when navigating away from a question (Next/Back). Unlike stop(), abort()
+// discards any not-yet-delivered result immediately, so speech from the question
+// being left can never land in the textarea of the question being shown next.
+function abortRecognition() {
+  if (recognition && recognizing) {
+    recognition.abort();
+  }
+  recognizing = false;
+}
+
 function toggleMic() {
   if (!SpeechRecognitionCtor) return;
   if (recognizing) {
@@ -124,6 +135,7 @@ function toggleMic() {
     return;
   }
   const box = document.getElementById("answer-box");
+  micQuestionIndex = current;
   micBaseText = box.value;
   if (micBaseText && !/\s$/.test(micBaseText)) micBaseText += " ";
 
@@ -137,6 +149,7 @@ function toggleMic() {
     updateMicUI();
   };
   recognition.onresult = function (e) {
+    if (current !== micQuestionIndex) return; // stale result from a question we've since left
     let finalText = "";
     let interimText = "";
     for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -153,6 +166,7 @@ function toggleMic() {
   recognition.onerror = function (e) {
     recognizing = false;
     updateMicUI();
+    if (current !== micQuestionIndex) return; // we've since moved to a different question
     const status = document.getElementById("mic-status");
     if (e.error === "not-allowed" || e.error === "permission-denied") {
       status.textContent = "Microphone access was blocked. Typing works fine instead.";
