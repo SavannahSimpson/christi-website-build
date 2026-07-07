@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>What's Already Here - A Discovery Conversation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="christi_style2.css">
+</head>
+<body>
+
+<div class="card">
+
+  <div id="screen-passcode" class="fade">
+    <div class="eyebrow">A Discovery Conversation</div>
+    <h1>What's Already Here</h1>
+    <div class="subtitle">A private conversation, just between you and Savannah</div>
+    <div class="intro-copy" style="margin-top:26px;">
+      <p>This page is unlisted, but enter the passcode Savannah gave you before continuing.</p>
+    </div>
+    <input type="password" id="passcode-input" placeholder="Enter passcode" onkeydown="handlePasscodeKey(event)" style="width:100%;padding:10px 0;border:none;border-bottom:1px solid var(--rule);background:transparent;font-family:'Poppins',sans-serif;font-size:16px;color:var(--text);outline:none;margin-top:10px;">
+    <div id="passcode-error" style="color:var(--terracotta);font-size:13px;font-style:italic;margin-top:8px;min-height:16px;"></div>
+    <button class="btn-primary" onclick="checkPasscode()" style="margin-top:10px;">Continue &rarr;</button>
+  </div>
+
+  <div id="screen-intro" class="fade" style="display:none;">
+    <div class="eyebrow">A Discovery Conversation</div>
+    <h1>What's Already Here</h1>
+    <div class="subtitle">A conversation with yourself, before it becomes a website</div>
+    <div class="subtitle" style="font-size:14px;">Prepared for Christi, by Savannah</div>
+    <div class="intro-copy" style="margin-top:26px;">
+      <p>There's no test here, and nothing to get right. Some of what follows you'll answer in a sentence. Some of it might take you somewhere you didn't expect to go. Follow whatever opens something up. Skip whatever doesn't.</p>
+      <p>Read each question, then just start talking or typing, whatever comes up, the same way you'd answer out loud if someone asked you over coffee. There's no need to plan the answer first.</p>
+      <p>This isn't a form. It's a conversation with yourself, before any of it becomes a website. Come back to it in pieces if that suits you better. There's no clock running.</p>
+    </div>
+    <button class="btn-primary" onclick="begin()" style="margin-top:10px;">Begin &rarr;</button>
+  </div>
+
+  <div id="screen-question">
+    <div class="progress" id="progress-label"></div>
+    <div class="bar"><div class="bar-fill" id="bar-fill"></div></div>
+    <div id="chapter-block"></div>
+    <div class="prompt-text" id="prompt-text"></div>
+    <textarea id="answer-box" placeholder="Start wherever this takes you..."></textarea>
+    <div class="mic-row">
+      <button type="button" id="mic-btn" class="btn-mic" onclick="toggleMic()">
+        <span class="dot"></span>
+        <span id="mic-label">Speak your answer</span>
+      </button>
+      <span class="mic-status" id="mic-status"></span>
+      <span class="mic-unsupported" id="mic-unsupported" style="display:none;">Speech input isn't supported in this browser. Chrome or Edge work best, typing is always fine here too.</span>
+    </div>
+    <div class="nav-row">
+      <button class="btn-ghost" id="back-btn" onclick="goBack()">&larr; Back</button>
+      <button class="btn-primary" id="next-btn" onclick="goNext()">Next &rarr;</button>
+    </div>
+  </div>
+
+  <div id="screen-summary" style="display:none;">
+    <div class="eyebrow">All Done</div>
+    <h1 style="font-size:34px;">Thank You</h1>
+    <p style="line-height:1.6;">Here's everything, gathered in one place. The fastest way back to Savannah is the email button below, it copies everything and opens your email app ready to go, you just paste and send. Copy or download are here too if you'd rather.</p>
+    <div class="summary-actions">
+      <button class="btn-primary" onclick="emailAll()">Send by email</button>
+      <button class="btn-outline" onclick="copyAll()">Copy everything</button>
+      <button class="btn-outline" onclick="downloadAll()">Download as text file</button>
+    </div>
+    <div class="email-warning" id="email-warning" style="display:none;"></div>
+    <div id="qa-list" style="margin-top:10px;"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">Copied to clipboard</div>
+
+<script src="christi_data.js"></script>
+<script src="christi_app3.js"></script>
+
+</body>
+</html>
