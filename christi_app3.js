@@ -227,10 +227,39 @@ function copyTextToClipboard(text) {
   return Promise.resolve();
 }
 
-// Hybrid approach: the full answers are copied to the clipboard (no length limit),
-// and the email that opens only needs a short instruction line, so mailto's body
-// size limit never comes into play regardless of how much Christi wrote.
 function emailAll() {
   const text = compileText();
   const subject = "Christi - Discovery Conversation Answers";
-  const shortBody = "Hi Savannah,\n\nMy answers 
+  const shortBody = "Hi Savannah, my answers are copied to my clipboard, paste them below this line. ----------";
+  const warningEl = document.getElementById("email-warning");
+
+  copyTextToClipboard(text).then(function () {
+    warningEl.style.display = "block";
+    warningEl.textContent = "Your email app is opening now, everything is already copied to your clipboard. Paste it in (Ctrl+V or Cmd+V) below the line, then hit send.";
+    const link = buildMailto(RECIPIENT_EMAIL, subject, shortBody);
+    window.location.href = link;
+  });
+}
+
+function copyAll() {
+  copyTextToClipboard(compileText()).then(showToast);
+}
+
+function showToast() {
+  const t = document.getElementById("toast");
+  t.classList.add("show");
+  setTimeout(function () { t.classList.remove("show"); }, 1800);
+}
+
+function downloadAll() {
+  const text = compileText();
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Christi - Discovery Conversation Answers.txt";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
