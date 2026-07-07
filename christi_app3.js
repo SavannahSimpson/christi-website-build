@@ -128,6 +128,45 @@ function abortRecognition() {
   recognizing = false;
 }
 
+// --- Light, fully local cleanup for speech-to-text answers only. ---
+// Nothing here ever leaves the browser, and typed answers are never touched,
+// this only runs on text that came from the mic. It handles capitalization,
+// filler words, and sentence breaks between pauses, it is not a full grammar
+// checker (it won't fix verb tense, word choice, or real spelling mistakes).
+function stripFillerWords(s) {
+  return s.replace(/\b(um+|uh+|erm+|er)\b/gi, "").replace(/\s{2,}/g, " ").trim();
+}
+
+function capitalizeStandaloneI(s) {
+  return s.replace(/\bi\b/g, "I");
+}
+
+function cleanSpokenChunk(raw) {
+  let s = stripFillerWords(raw);
+  if (!s) return "";
+  s = capitalizeStandaloneI(s);
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  return s;
+}
+
+// Appends one finalized speech chunk onto the accumulated answer, adding the
+// sentence break (period + capital) between chunks that recognition itself
+// doesn't provide, since each finalized chunk roughly corresponds to a pause.
+function appendCleanedChunk(base, rawChunk) {
+  const cleaned = cleanSpokenChunk(rawChunk);
+  if (!cleaned) return base;
+  let b = base.replace(/\s+$/, "");
+  if (b && !/[.!?]$/.test(b)) b += ".";
+  if (b) b += " ";
+  return b + cleaned + " ";
+}
+
+function finalizePunctuation(s) {
+  const t = s.replace(/\s+$/, "");
+  if (!t) return t;
+  return /[.!?]$/.test(t) ? t : t + ".";
+}
+
 function toggleMic() {
   if (!SpeechRecognitionCtor) return;
   if (recognizing) {
@@ -136,8 +175,9 @@ function toggleMic() {
   }
   const box = document.getElementById("answer-box");
   micQuestionIndex = current;
-  micBaseText = box.value;
-  if (micBaseText && !/\s$/.test(micBaseText)) micBaseText += " ";
+  micBaseText = box.value.replace(/\s+$/, "");
+  if (micBaseText && !/[.!?]$/.test(micBaseText)) micBaseText += ".";
+  if (micBaseText) micBaseText += " ";
 
   recognition = new SpeechRecognitionCtor();
   recognition.continuous = true;
@@ -150,17 +190,15 @@ function toggleMic() {
   };
   recognition.onresult = function (e) {
     if (current !== micQuestionIndex) return; // stale result from a question we've since left
-    let finalText = "";
     let interimText = "";
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const transcript = e.results[i][0].transcript;
       if (e.results[i].isFinal) {
-        finalText += transcript + " ";
+        micBaseText = appendCleanedChunk(micBaseText, transcript);
       } else {
         interimText += transcript;
       }
     }
-    if (finalText) micBaseText += finalText;
     box.value = micBaseText + interimText;
   };
   recognition.onerror = function (e) {
@@ -177,6 +215,9 @@ function toggleMic() {
   recognition.onend = function () {
     recognizing = false;
     updateMicUI();
+    if (current === micQuestionIndex) {
+      box.value = finalizePunctuation(box.value);
+    }
   };
   recognition.start();
 }
